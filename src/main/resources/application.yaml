@@ -7,7 +7,7 @@ spring:
     url: jdbc:h2:mem:fanconnectdb
     driverClassName: org.h2.Driver
     username: sa
-    password: password
+    password:
   jpa:
     hibernate:
       ddl-auto: update

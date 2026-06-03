@@ -30,4 +30,17 @@ public class FeedController {
         Postagem postagemSalva = postagemRepository.save(novaPostagem);
         return ResponseEntity.status(201).body(postagemSalva);
     }
+
+    @PostMapping("/{id}/curtir")
+    public ResponseEntity<Postagem> curtirPostagem(@PathVariable Long id) {
+        return postagemRepository.findById(id)
+                .map(postagem -> {
+                    // Chama o seu método já existente!
+                    postagem.incrementarCurtidas();
+
+                    Postagem postagemAtualizada = postagemRepository.save(postagem);
+                    return ResponseEntity.ok(postagemAtualizada);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

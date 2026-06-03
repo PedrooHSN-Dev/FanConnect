@@ -29,6 +29,7 @@ public class Postagem {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
+    // Relação: Muitos posts pertencem a UM Autor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -39,17 +40,16 @@ public class Postagem {
     @JoinColumn(name = "item_agenda_id")
     private ItemAgenda eventoProposto;
 
-    // Contadores para evitar sobrecarga no banco de dados
+    // Contadores com valor padrão
     private int quantidadeCurtidas = 0;
     private int quantidadeComentarios = 0;
 
     public Postagem() {}
 
-    // RF03
+    // RF03 - Cálculo de Relevância
     @PrePersist
     @PreUpdate
     public void atualizarScore() {
-        // Se dataCriacao for nulo, define agora
         if (this.dataCriacao == null) {
             this.dataCriacao = LocalDateTime.now();
         }
@@ -57,7 +57,6 @@ public class Postagem {
         double engajamento = this.quantidadeCurtidas + (this.quantidadeComentarios * 1.5);
         double pesoAutoridade = (this.oficial != null && this.oficial) ? 2.5 : 1.0;
 
-        // Calcula horas passadas, garantindo que seja pelo menos 1 para evitar divisões estranhas
         long horasDecorridas = ChronoUnit.HOURS.between(this.dataCriacao, LocalDateTime.now());
         double tempoDecaimento = Math.pow((horasDecorridas + 2), 1.5);
 
@@ -66,7 +65,7 @@ public class Postagem {
         this.scoreRelevancia = new BigDecimal(calculoFinal).setScale(4, RoundingMode.HALF_UP);
     }
 
-    // Getters e Setters
+    // Getters e Setters Básicos
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -90,9 +89,20 @@ public class Postagem {
     public void setEventoProposto(ItemAgenda eventoProposto) { this.eventoProposto = eventoProposto; }
 
     public int getQuantidadeCurtidas() { return quantidadeCurtidas; }
-    public void incrementarCurtidas() { this.quantidadeCurtidas++; atualizarScore(); }
-    public void decrementarCurtidas() { if(this.quantidadeCurtidas > 0) this.quantidadeCurtidas--; atualizarScore(); }
+    public void incrementarCurtidas() {
+        this.quantidadeCurtidas++;
+        atualizarScore();
+    }
+    public void decrementarCurtidas() {
+        if(this.quantidadeCurtidas > 0) {
+            this.quantidadeCurtidas--;
+            atualizarScore();
+        }
+    }
 
     public int getQuantidadeComentarios() { return quantidadeComentarios; }
-    public void incrementarComentarios() { this.quantidadeComentarios++; atualizarScore(); }
+    public void incrementarComentarios() {
+        this.quantidadeComentarios++;
+        atualizarScore();
+    }
 }
