@@ -23,11 +23,10 @@ public class ItemAgenda {
     private String localizacao;
 
     @Column(nullable = false, length = 30)
-    private String categoria; // Ex: PROVAS, PALESTRAS, BUROCRACIA, SOCIAIS
+    private String categoria;
 
     public ItemAgenda() {}
 
-    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
