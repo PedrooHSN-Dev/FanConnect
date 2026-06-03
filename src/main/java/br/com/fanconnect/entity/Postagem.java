@@ -1,5 +1,6 @@
 package br.com.fanconnect.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,9 +29,9 @@ public class Postagem {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
-    // Relação: Muitos posts pertencem a UM Autor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuario autor;
 
     // Relação: Um post pode divulgar UM Item na Agenda
@@ -44,18 +45,20 @@ public class Postagem {
 
     public Postagem() {}
 
-    // --- REGRA DE NEGÓCIO: Algoritmo de Relevância (RF03) ---
+    // RF03
     @PrePersist
     @PreUpdate
     public void atualizarScore() {
-        // Base de engajamento
+        // Se dataCriacao for nulo, define agora
+        if (this.dataCriacao == null) {
+            this.dataCriacao = LocalDateTime.now();
+        }
+
         double engajamento = this.quantidadeCurtidas + (this.quantidadeComentarios * 1.5);
+        double pesoAutoridade = (this.oficial != null && this.oficial) ? 2.5 : 1.0;
 
-        // Peso de Autoridade
-        double pesoAutoridade = this.oficial ? 2.5 : 1.0;
-
-        // Decaimento temporal (evita que posts antigos fiquem no topo para sempre)
-        long horasDecorridas = ChronoUnit.HOURS.between(this.dataCriacao != null ? this.dataCriacao : LocalDateTime.now(), LocalDateTime.now());
+        // Calcula horas passadas, garantindo que seja pelo menos 1 para evitar divisões estranhas
+        long horasDecorridas = ChronoUnit.HOURS.between(this.dataCriacao, LocalDateTime.now());
         double tempoDecaimento = Math.pow((horasDecorridas + 2), 1.5);
 
         double calculoFinal = (engajamento * pesoAutoridade) / tempoDecaimento;
