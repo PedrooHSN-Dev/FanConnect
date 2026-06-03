@@ -1,0 +1,23 @@
+# Compilados do Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# Arquivos da IDE (IntelliJ IDEA)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Logs e OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Variáveis de Ambiente e Secrets
+.env
+application-dev.yaml
+application-prod.yaml
