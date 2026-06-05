@@ -15,4 +15,7 @@ public interface ItemAgendaRepository extends JpaRepository<ItemAgenda, Long> {
 
     // Busca as anotações privadas de um aluno específico
     List<ItemAgenda> findByVisibilidadeAndDonoId(VisibilidadeEvento visibilidade, Long donoId);
+
+    // O robô só quer eventos que o lembrete está ATIVO e que AINDA NÃO foram enviados
+    List<ItemAgenda> findByLembreteAtivoTrueAndLembreteEnviadoFalse();
 }

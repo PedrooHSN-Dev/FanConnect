@@ -1,4 +1,15 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${FANCONNECT_EMAIL_USER}
+    password: ${FANCONNECT_EMAIL_PASS}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   h2:
     console:
       enabled: true

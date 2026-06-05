@@ -25,8 +25,6 @@ public class ItemAgenda {
     @Column(nullable = false, length = 30)
     private String categoria;
 
-    // NOVOS CAMPOS DOS REQUISITOS
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VisibilidadeEvento visibilidade = VisibilidadeEvento.GLOBAL;
@@ -34,10 +32,14 @@ public class ItemAgenda {
     // Se for privado ou de turma, precisamos saber de quem é
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dono_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuario dono;
 
     @Column(nullable = false)
     private Boolean lembreteAtivo = false;
+
+    @Column(nullable = false)
+    private Boolean lembreteEnviado = false;
 
     private Integer minutosAvisoLembrete;
 
@@ -71,4 +73,7 @@ public class ItemAgenda {
 
     public Integer getMinutosAvisoLembrete() { return minutosAvisoLembrete; }
     public void setMinutosAvisoLembrete(Integer minutosAvisoLembrete) { this.minutosAvisoLembrete = minutosAvisoLembrete; }
+
+    public Boolean getLembreteEnviado() { return lembreteEnviado; }
+    public void setLembreteEnviado(Boolean lembreteEnviado) { this.lembreteEnviado = lembreteEnviado; }
 }
