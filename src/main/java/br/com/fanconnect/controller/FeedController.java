@@ -1,14 +1,19 @@
 package br.com.fanconnect.controller;
 
+import br.com.fanconnect.dto.DadosListagemComentario;
+import br.com.fanconnect.dto.DadosNovoComentario;
+import br.com.fanconnect.entity.Comentario;
 import br.com.fanconnect.entity.ItemAgenda;
 import br.com.fanconnect.entity.Postagem;
 import br.com.fanconnect.entity.Usuario;
 import br.com.fanconnect.entity.VisibilidadeEvento;
+import br.com.fanconnect.repository.ComentarioRepository;
 import br.com.fanconnect.repository.ItemAgendaRepository;
 import br.com.fanconnect.repository.PostagemRepository;
 import br.com.fanconnect.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +32,9 @@ public class FeedController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ComentarioRepository comentarioRepository;
+
     @GetMapping
     public ResponseEntity<List<Postagem>> listarFeed() {
         List<Postagem> postagens = postagemRepository.findAllByOrderByScoreRelevanciaDescDataCriacaoDesc();
@@ -36,7 +44,7 @@ public class FeedController {
     // Endpoint para publicar no feed (O React vai fazer um POST aqui)
     @PostMapping
     public ResponseEntity<Postagem> criarPostagem(@RequestBody Postagem novaPostagem) {
-        // A anotação @PrePersist faz o algoritmo de Score será calculado automaticamente nos bastidores antes de salvar
+        // A anotação @PrePersist faz o algoritmo de Score ser calculado automaticamente nos bastidores antes de salvar
         Postagem postagemSalva = postagemRepository.save(novaPostagem);
         return ResponseEntity.status(201).body(postagemSalva);
     }
@@ -52,6 +60,51 @@ public class FeedController {
                     return ResponseEntity.ok(postagemAtualizada);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Endpoint para comentar na postagem
+    @PostMapping("/{postagemId}/comentar")
+    public ResponseEntity<String> comentar(
+            @PathVariable Long postagemId,
+            @RequestBody DadosNovoComentario dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        // Verifica se a postagem existe
+        var postagemOptional = postagemRepository.findById(postagemId);
+        if (postagemOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var postagem = postagemOptional.get();
+
+        // Cria e guarda o comentário
+        Comentario comentario = new Comentario();
+        comentario.setConteudo(dados.conteudo());
+        comentario.setAutor(usuarioLogado);
+        comentario.setPostagem(postagem);
+
+        comentarioRepository.save(comentario);
+
+        // Atualiza o contador de comentários na Postagem
+        postagem.incrementarComentarios();
+        postagemRepository.save(postagem);
+
+        return ResponseEntity.status(201).body("Comentário adicionado com sucesso!");
+    }
+
+    @GetMapping("/{postagemId}/comentarios")
+    public ResponseEntity<List<DadosListagemComentario>> listarComentarios(@PathVariable Long postagemId) {
+
+        if (!postagemRepository.existsById(postagemId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var comentarios = comentarioRepository.findByPostagemIdOrderByDataCriacaoDesc(postagemId)
+                .stream()
+                .map(DadosListagemComentario::new)
+                .toList();
+
+        return ResponseEntity.ok(comentarios);
     }
 
     @PostMapping("/{postagemId}/salvar-agenda/{usuarioId}")
@@ -80,16 +133,14 @@ public class FeedController {
         eventoPrivado.setLocalizacao(eventoOriginal.getLocalizacao());
         eventoPrivado.setCategoria(eventoOriginal.getCategoria());
 
-        // Aplica as regras de negócio de privacidade e notificação
         eventoPrivado.setVisibilidade(VisibilidadeEvento.PRIVADO);
         eventoPrivado.setDono(aluno);
         eventoPrivado.setLembreteAtivo(true);
         eventoPrivado.setMinutosAvisoLembrete(60); // Avisa 1 hora antes por padrão
 
-        // 4. Salva e retorna o novo compromisso
+        // Salva e retorna o novo compromisso
         ItemAgenda eventoSalvo = agendaRepository.save(eventoPrivado);
 
         return ResponseEntity.ok(eventoSalvo);
     }
-
 }

@@ -39,6 +39,11 @@ public class Usuario implements UserDetails{
     @Column(length = 500)
     private String biografia;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turma_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Turma turma;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
@@ -70,6 +75,9 @@ public class Usuario implements UserDetails{
     public void setBiografia(String biografia) { this.biografia = biografia; }
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
+
+    public Turma getTurma() { return turma; }
+    public void setTurma(Turma turma) { this.turma = turma; }
 
     // ==========================================================================
     // MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (USERDETAILS)
