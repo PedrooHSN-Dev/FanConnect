@@ -3,10 +3,15 @@ package br.com.fanconnect.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
-public class Usuario {
+public class Usuario implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,4 +70,50 @@ public class Usuario {
     public void setBiografia(String biografia) { this.biografia = biografia; }
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
+
+    // ==========================================================================
+    // MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (USERDETAILS)
+    // ==========================================================================
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Mapeia o Enum TipoUsuario para as Roles do Spring Security
+        if (this.tipoPerfil == TipoUsuario.ADMIN) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_ALUNO"));
+        } else if (this.tipoPerfil == TipoUsuario.PROFESSOR) {
+            return List.of(new SimpleGrantedAuthority("ROLE_PROFESSOR"), new SimpleGrantedAuthority("ROLE_ALUNO"));
+        } else {
+            return List.of(new SimpleGrantedAuthority("ROLE_ALUNO"));
+        }
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
