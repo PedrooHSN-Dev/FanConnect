@@ -2,8 +2,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${FANCONNECT_EMAIL_USER}
-    password: ${FANCONNECT_EMAIL_PASS}
+    username: fanconnectlembrete@gmail.com
+    password: kvmbbnxwmueewpki
     properties:
       mail:
         smtp:

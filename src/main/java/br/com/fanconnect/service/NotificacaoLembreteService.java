@@ -66,7 +66,7 @@ public class NotificacaoLembreteService {
                     agendaRepository.save(evento);
 
                 } catch (MessagingException | UnsupportedEncodingException e) {
-                    System.out.println("Erro ao formatar o e-mail avançado: " + e.getMessage());
+                    System.out.println("Erro ao enviar e-mail: " + e.getMessage());
                 }
             }
         }

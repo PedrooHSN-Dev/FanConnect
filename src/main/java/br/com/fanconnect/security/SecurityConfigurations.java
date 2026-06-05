@@ -31,13 +31,12 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll(); // Rota de login
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll(); // Cadastro de novos usuários
-
                     req.requestMatchers("/h2-console/**").permitAll();
-
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/esqueci-senha").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/redefinir-senha").permitAll();
                     req.anyRequest().authenticated();
                 })
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
