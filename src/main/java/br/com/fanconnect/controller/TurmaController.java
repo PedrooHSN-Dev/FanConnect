@@ -5,6 +5,7 @@ import br.com.fanconnect.repository.TurmaRepository;
 import br.com.fanconnect.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class TurmaController {
 
     // Criar uma nova turma
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Turma> criarTurma(@RequestBody Turma novaTurma) {
         Turma turmaSalva = turmaRepository.save(novaTurma);
         return ResponseEntity.status(201).body(turmaSalva);

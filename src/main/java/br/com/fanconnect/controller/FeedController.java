@@ -50,11 +50,13 @@ public class FeedController {
     }
 
     @PostMapping("/{id}/curtir")
-    public ResponseEntity<Postagem> curtirPostagem(@PathVariable Long id) {
+    public ResponseEntity<Postagem> curtirPostagem(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
         return postagemRepository.findById(id)
                 .map(postagem -> {
-                    // Chama o seu método já existente!
-                    postagem.incrementarCurtidas();
+                    postagem.alternarCurtida(usuarioLogado);
 
                     Postagem postagemAtualizada = postagemRepository.save(postagem);
                     return ResponseEntity.ok(postagemAtualizada);

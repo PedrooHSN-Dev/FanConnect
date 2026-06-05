@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "postagens")
@@ -89,9 +91,21 @@ public class Postagem {
     public void setEventoProposto(ItemAgenda eventoProposto) { this.eventoProposto = eventoProposto; }
 
     public int getQuantidadeCurtidas() { return quantidadeCurtidas; }
-    public void incrementarCurtidas() {
-        this.quantidadeCurtidas++;
-        atualizarScore();
+
+    public void alternarCurtida(Usuario usuarioLogado) {
+        // Verifica se o usuário já está na lista
+        boolean jaCurtiu = usuariosQueCurtiram.stream()
+                .anyMatch(u -> u.getId().equals(usuarioLogado.getId()));
+
+        if (jaCurtiu) {
+            // Se já curtiu, remove o usuário da lista e tira 1 do contador (UNLIKE)
+            usuariosQueCurtiram.removeIf(u -> u.getId().equals(usuarioLogado.getId()));
+            this.quantidadeCurtidas--;
+        } else {
+            // Se não curtiu, adiciona à lista e soma 1 (LIKE)
+            this.usuariosQueCurtiram.add(usuarioLogado);
+            this.quantidadeCurtidas++;
+        }
     }
     public void decrementarCurtidas() {
         if(this.quantidadeCurtidas > 0) {
@@ -105,4 +119,13 @@ public class Postagem {
         this.quantidadeComentarios++;
         atualizarScore();
     }
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "postagem_curtidas",
+            joinColumns = @JoinColumn(name = "postagem_id"),
+            inverseJoinColumns = @JoinColumn(name = "usuario_id")
+    )
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Set<Usuario> usuariosQueCurtiram = new HashSet<>();
 }

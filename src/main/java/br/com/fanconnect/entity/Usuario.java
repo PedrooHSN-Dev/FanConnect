@@ -83,43 +83,44 @@ public class Usuario implements UserDetails{
     // MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (USERDETAILS)
     // ==========================================================================
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Mapeia o Enum TipoUsuario para as Roles do Spring Security
-        if (this.tipoPerfil == TipoUsuario.ADMIN) {
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_ALUNO"));
-        } else if (this.tipoPerfil == TipoUsuario.PROFESSOR) {
-            return List.of(new SimpleGrantedAuthority("ROLE_PROFESSOR"), new SimpleGrantedAuthority("ROLE_ALUNO"));
-        } else {
-            return List.of(new SimpleGrantedAuthority("ROLE_ALUNO"));
-        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.tipoPerfil.name()));
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return this.senha;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return this.email;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return true;
