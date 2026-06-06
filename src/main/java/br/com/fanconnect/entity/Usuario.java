@@ -23,6 +23,9 @@ public class Usuario implements UserDetails{
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(nullable = false)
+    private Boolean ativo = false;
+
     @JsonIgnore
     @Column(nullable = false)
     private String senha;
@@ -58,6 +61,9 @@ public class Usuario implements UserDetails{
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
@@ -123,6 +129,6 @@ public class Usuario implements UserDetails{
     @JsonIgnore
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.ativo;
     }
 }

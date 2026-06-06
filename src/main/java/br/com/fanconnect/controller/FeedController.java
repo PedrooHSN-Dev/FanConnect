@@ -41,10 +41,13 @@ public class FeedController {
         return ResponseEntity.ok(postagens);
     }
 
-    // Endpoint para publicar no feed (O React vai fazer um POST aqui)
     @PostMapping
-    public ResponseEntity<Postagem> criarPostagem(@RequestBody Postagem novaPostagem) {
-        // A anotação @PrePersist faz o algoritmo de Score ser calculado automaticamente nos bastidores antes de salvar
+    public ResponseEntity<Postagem> criarPostagem(
+            @RequestBody Postagem novaPostagem,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        novaPostagem.setAutor(usuarioLogado);
+
         Postagem postagemSalva = postagemRepository.save(novaPostagem);
         return ResponseEntity.status(201).body(postagemSalva);
     }
@@ -109,40 +112,33 @@ public class FeedController {
         return ResponseEntity.ok(comentarios);
     }
 
-    @PostMapping("/{postagemId}/salvar-agenda/{usuarioId}")
-    public ResponseEntity<ItemAgenda> salvarEventoNaAgenda(@PathVariable Long postagemId, @PathVariable Long usuarioId) {
+    @PostMapping("/{postagemId}/salvar-agenda")
+    public ResponseEntity<ItemAgenda> salvarEventoNaAgenda(
+            @PathVariable Long postagemId,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
 
-        // Verifica se a postagem existe
         Postagem postagem = postagemRepository.findById(postagemId).orElse(null);
         if (postagem == null || postagem.getEventoProposto() == null) {
-            return ResponseEntity.badRequest().build(); // Retorna 400 se a postagem não existir ou não tiver evento
+            return ResponseEntity.badRequest().build();
         }
 
-        // Verifica se o usuário existe
-        Usuario aluno = usuarioRepository.findById(usuarioId).orElse(null);
-        if (aluno == null) {
-            return ResponseEntity.notFound().build();
-        }
+        Usuario aluno = usuarioLogado;
 
-        // Cria a cópia privada para o aluno
         ItemAgenda eventoOriginal = postagem.getEventoProposto();
-
         ItemAgenda eventoPrivado = new ItemAgenda();
         eventoPrivado.setTitulo(eventoOriginal.getTitulo());
-        // Adiciona um aviso na descrição para lembrar de onde veio
         eventoPrivado.setDescricao("Salvo do Feed: " + postagem.getConteudo());
         eventoPrivado.setDataHora(eventoOriginal.getDataHora());
         eventoPrivado.setLocalizacao(eventoOriginal.getLocalizacao());
         eventoPrivado.setCategoria(eventoOriginal.getCategoria());
-
         eventoPrivado.setVisibilidade(VisibilidadeEvento.PRIVADO);
+
         eventoPrivado.setDono(aluno);
+
         eventoPrivado.setLembreteAtivo(true);
-        eventoPrivado.setMinutosAvisoLembrete(60); // Avisa 1 hora antes por padrão
+        eventoPrivado.setMinutosAvisoLembrete(60);
 
-        // Salva e retorna o novo compromisso
         ItemAgenda eventoSalvo = agendaRepository.save(eventoPrivado);
-
         return ResponseEntity.ok(eventoSalvo);
     }
 }

@@ -37,6 +37,7 @@ public class TurmaController {
 
     // Matricular um aluno em uma turma
     @PostMapping("/{turmaId}/matricular/{usuarioId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> matricularAluno(@PathVariable Long turmaId, @PathVariable Long usuarioId) {
 
         var turmaOptional = turmaRepository.findById(turmaId);

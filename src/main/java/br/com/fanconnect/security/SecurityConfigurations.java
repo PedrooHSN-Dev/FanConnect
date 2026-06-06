@@ -34,6 +34,8 @@ public class SecurityConfigurations {
                     req.requestMatchers("/h2-console/**").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios/esqueci-senha").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios/redefinir-senha").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/ativar-conta").permitAll();
+                    req.requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js").permitAll();
                     req.anyRequest().authenticated();
                 })
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))

@@ -1,14 +1,13 @@
 package br.com.fanconnect.controller;
 
 import br.com.fanconnect.entity.ItemAgenda;
+import br.com.fanconnect.entity.Usuario;
 import br.com.fanconnect.entity.VisibilidadeEvento;
 import br.com.fanconnect.repository.ItemAgendaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import br.com.fanconnect.entity.Usuario;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,49 +18,35 @@ public class AgendaController {
 
     private final ItemAgendaRepository agendaRepository;
 
-    @Autowired
-    private ItemAgendaRepository repository;
-
     public AgendaController(ItemAgendaRepository agendaRepository) {
         this.agendaRepository = agendaRepository;
     }
 
-    // Listar eventos GLOBAIS (Calendário Acadêmico Oficial)
     @GetMapping("/global")
     public ResponseEntity<List<ItemAgenda>> listarEventosGlobais() {
-        List<ItemAgenda> eventos = agendaRepository.findByVisibilidade(VisibilidadeEvento.GLOBAL);
+        var eventos = agendaRepository.findByVisibilidade(VisibilidadeEvento.GLOBAL);
         return ResponseEntity.ok(eventos);
     }
 
-    // Listar eventos PRIVADOS de um aluno específico
-    @GetMapping("/privado/{usuarioId}")
-    public ResponseEntity<List<ItemAgenda>> listarEventosPrivados(@PathVariable Long usuarioId) {
-        List<ItemAgenda> eventos = agendaRepository.findByVisibilidadeAndDonoId(VisibilidadeEvento.PRIVADO, usuarioId);
-        return ResponseEntity.ok(eventos);
-    }
-
-    // Criar um novo evento (Global, Turma ou Privado)
     @PostMapping
-    public ResponseEntity<ItemAgenda> criarEvento(@RequestBody ItemAgenda novoEvento) {
-        // O Spring vai mapear automaticamente o JSON com as novas colunas
+    public ResponseEntity<?> salvarEvento(@RequestBody ItemAgenda novoEvento, @AuthenticationPrincipal Usuario usuarioLogado) {
+        if (agendaRepository.existsByDonoIdAndTitulo(usuarioLogado.getId(), novoEvento.getTitulo())) {
+            return ResponseEntity.badRequest().body("Você já possui um evento com este título na sua agenda.");
+        }
+
+        novoEvento.setDono(usuarioLogado);
         ItemAgenda eventoSalvo = agendaRepository.save(novoEvento);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(eventoSalvo);
     }
 
     @GetMapping("/meus-eventos")
-    public ResponseEntity<List<ItemAgenda>> listarMeusEventos(@AuthenticationPrincipal Usuario usuarioLogado) {
+    public ResponseEntity<List<ItemAgenda>> listarAgendaCompleta(@AuthenticationPrincipal Usuario usuarioLogado) {
+        Long usuarioId = usuarioLogado.getId();
+        Long turmaId = (usuarioLogado.getTurma() != null) ? usuarioLogado.getTurma().getId() : null;
 
-        // Verifica se o usuário tem uma turma vinculada
-        if (usuarioLogado.getTurma() != null) {
-            Long turmaId = usuarioLogado.getTurma().getId();
+        List<ItemAgenda> todosOsEventos = agendaRepository.buscarAgendaCompletaDoAluno(turmaId, usuarioId);
 
-            // Busca eventos Globais OU eventos exclusivos da turma do aluno
-            var eventos = repository.buscarEventosPermitidos(VisibilidadeEvento.GLOBAL, turmaId);
-            return ResponseEntity.ok(eventos);
-        }
-
-        // Se o aluno ainda não tiver turma, mostra só os eventos globais
-        var eventosGlobais = repository.findByVisibilidadeOrderByDataHoraAsc(VisibilidadeEvento.GLOBAL);
-        return ResponseEntity.ok(eventosGlobais);
+        return ResponseEntity.ok(todosOsEventos);
     }
 }

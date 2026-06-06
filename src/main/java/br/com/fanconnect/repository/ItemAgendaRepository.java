@@ -15,6 +15,9 @@ public interface ItemAgendaRepository extends JpaRepository<ItemAgenda, Long> {
     // Busca os eventos globais (calendário acadêmico da instituição)
     List<ItemAgenda> findByVisibilidade(VisibilidadeEvento visibilidade);
 
+    // Trava para evitar duplicidade
+    boolean existsByDonoIdAndTitulo(Long donoId, String titulo);
+
     // Busca as anotações privadas de um aluno específico
     List<ItemAgenda> findByVisibilidadeAndDonoId(VisibilidadeEvento visibilidade, Long donoId);
 
@@ -27,4 +30,15 @@ public interface ItemAgendaRepository extends JpaRepository<ItemAgenda, Long> {
 
     // Método de segurança caso o aluno ainda não tenha turma
     List<ItemAgenda> findByVisibilidadeOrderByDataHoraAsc(VisibilidadeEvento visibilidade);
+
+    @Query("""
+        SELECT e FROM ItemAgenda e 
+        WHERE e.visibilidade = 'GLOBAL' 
+        OR (e.visibilidade = 'TURMA' AND e.turmaAlvo.id = :turmaId) 
+        OR (e.visibilidade = 'PRIVADO' AND e.dono.id = :usuarioId)
+    """)
+    List<ItemAgenda> buscarAgendaCompletaDoAluno(
+            @Param("turmaId") Long turmaId,
+            @Param("usuarioId") Long usuarioId
+    );
 }
