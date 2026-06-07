@@ -11,7 +11,11 @@ import br.com.fanconnect.repository.ComentarioRepository;
 import br.com.fanconnect.repository.ItemAgendaRepository;
 import br.com.fanconnect.repository.PostagemRepository;
 import br.com.fanconnect.repository.UsuarioRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -35,18 +39,25 @@ public class FeedController {
     @Autowired
     private ComentarioRepository comentarioRepository;
 
+
     @GetMapping
-    public ResponseEntity<List<Postagem>> listarFeed() {
-        List<Postagem> postagens = postagemRepository.findAllByOrderByScoreRelevanciaDescDataCriacaoDesc();
+    public ResponseEntity<Page<Postagem>> listarFeed(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+
+        Page<Postagem> postagens = postagemRepository.findAllByOrderByScoreRelevanciaDescDataCriacaoDesc(pageable);
+
         return ResponseEntity.ok(postagens);
     }
 
     @PostMapping
     public ResponseEntity<Postagem> criarPostagem(
-            @RequestBody Postagem novaPostagem,
+            @RequestBody @Valid Postagem novaPostagem,
             @AuthenticationPrincipal Usuario usuarioLogado) {
 
         novaPostagem.setAutor(usuarioLogado);
+
+        if (novaPostagem.getEventoProposto() != null) {
+            novaPostagem.getEventoProposto().setDono(usuarioLogado);
+        }
 
         Postagem postagemSalva = postagemRepository.save(novaPostagem);
         return ResponseEntity.status(201).body(postagemSalva);

@@ -23,26 +23,28 @@ public class SecurityConfigurations {
     @Autowired
     private SecurityFilter securityFilter;
 
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable()) // Desativa a proteção contra CSRF (nós usamos tokens)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // API REST é Stateless
+        return http.csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll(); // Rota de login
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll(); // Cadastro de novos usuários
-                    req.requestMatchers("/h2-console/**").permitAll();
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/esqueci-senha").permitAll();
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/redefinir-senha").permitAll();
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/ativar-conta").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/usuarios/login", "/api/usuarios/ativar-conta").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/esqueci-senha", "/api/usuarios/redefinir-senha").permitAll();
                     req.requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js").permitAll();
+                    req.requestMatchers("/login/**", "/oauth2/**").permitAll();
+                    req.requestMatchers("/uploads/**").permitAll();
+                    req.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                     req.anyRequest().authenticated();
                 })
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

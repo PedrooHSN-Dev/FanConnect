@@ -2,6 +2,8 @@ package br.com.fanconnect.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -17,6 +19,7 @@ public class Postagem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "O conteúdo da postagem não pode estar vazio")
     @Column(columnDefinition = "TEXT", nullable = false)
     private String conteudo;
 

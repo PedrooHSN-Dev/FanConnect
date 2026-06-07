@@ -2,14 +2,19 @@ package br.com.fanconnect.controller;
 
 import br.com.fanconnect.dto.DadosAtivacaoConta;
 import br.com.fanconnect.dto.DadosCadastroUsuario;
+import br.com.fanconnect.dto.PerfilRequest;
+import br.com.fanconnect.dto.PerfilResponse;
 import br.com.fanconnect.entity.CodigoRecuperacao;
 import br.com.fanconnect.entity.TipoUsuario;
 import br.com.fanconnect.entity.Usuario;
 import br.com.fanconnect.repository.CodigoRecuperacaoRepository;
 import br.com.fanconnect.repository.UsuarioRepository;
 import br.com.fanconnect.service.EmailService;
+import br.com.fanconnect.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +38,12 @@ public class UsuarioController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @PostMapping
     @Transactional
-    public ResponseEntity<String> cadastrar(@RequestBody DadosCadastroUsuario dados) {
+    public ResponseEntity<String> cadastrar(@RequestBody @Valid DadosCadastroUsuario dados) {
         if (repository.findByEmail(dados.email()) != null) {
             return ResponseEntity.badRequest().body("E-mail já cadastrado!");
         }
@@ -84,5 +92,44 @@ public class UsuarioController {
         codigoRepository.delete(codigoVerificacao);
 
         return ResponseEntity.ok("Conta ativada com sucesso! Já pode fazer login.");
+    }
+
+    // ========================================================================
+    // ROTAS DE PERFIL SOCIAL (REQUEREM LOGIN)
+    // ========================================================================
+
+    // Visualizar o perfil
+    @GetMapping("/{id}")
+    public ResponseEntity<PerfilResponse> buscarPerfil(@PathVariable Long id) {
+        PerfilResponse perfil = usuarioService.buscarPerfilPorId(id);
+        return ResponseEntity.ok(perfil);
+    }
+
+    // Atualizar perfil
+    @PutMapping("/perfil")
+    public ResponseEntity<PerfilResponse> atualizarPerfil(
+            @RequestBody @Valid PerfilRequest request,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        PerfilResponse perfilAtualizado = usuarioService.atualizarPerfil(usuarioLogado, request);
+        return ResponseEntity.ok(perfilAtualizado);
+    }
+
+    @PostMapping("/{idSeguido}/seguir")
+    public ResponseEntity<String> seguirUsuario(
+            @PathVariable Long idSeguido,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        String mensagem = usuarioService.seguirUsuario(usuarioLogado, idSeguido);
+        return ResponseEntity.ok(mensagem);
+    }
+
+    @DeleteMapping("/{idSeguido}/seguir")
+    public ResponseEntity<String> deixarDeSeguir(
+            @PathVariable Long idSeguido,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        String mensagem = usuarioService.deixarDeSeguir(usuarioLogado, idSeguido);
+        return ResponseEntity.ok(mensagem);
     }
 }

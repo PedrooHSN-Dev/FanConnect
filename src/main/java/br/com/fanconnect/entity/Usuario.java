@@ -7,7 +7,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "usuarios")
@@ -50,7 +52,29 @@ public class Usuario implements UserDetails{
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao = LocalDateTime.now();
 
+    private String telefone;
+    private String localizacao;
+    private java.time.LocalDate dataNascimento;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoCivil estadoCivil;
+
+    private String nomeParceiro;
+
     public Usuario() {}
+
+    @ManyToMany
+    @JoinTable(
+            name = "usuario_seguidores",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "seguidor_id")
+    )
+    @JsonIgnore
+    private Set<Usuario> seguidores = new HashSet<>();
+
+    @ManyToMany(mappedBy = "seguidores")
+    @JsonIgnore
+    private Set<Usuario> seguindo = new HashSet<>();
 
     // Getters e Setters
     public Long getId() { return id; }
@@ -84,6 +108,24 @@ public class Usuario implements UserDetails{
 
     public Turma getTurma() { return turma; }
     public void setTurma(Turma turma) { this.turma = turma; }
+
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+
+    public String getLocalizacao() { return localizacao; }
+    public void setLocalizacao(String localizacao) { this.localizacao = localizacao; }
+
+    public java.time.LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(java.time.LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
+
+    public EstadoCivil getEstadoCivil() { return estadoCivil; }
+    public void setEstadoCivil(EstadoCivil estadoCivil) { this.estadoCivil = estadoCivil; }
+
+    public String getNomeParceiro() { return nomeParceiro; }
+    public void setNomeParceiro(String nomeParceiro) { this.nomeParceiro = nomeParceiro; }
+
+    public Set<Usuario> getSeguidores() { return seguidores; }
+    public Set<Usuario> getSeguindo() { return seguindo; }
 
     // ==========================================================================
     // MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (USERDETAILS)

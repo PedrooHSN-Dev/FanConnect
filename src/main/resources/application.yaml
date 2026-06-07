@@ -2,14 +2,26 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: fanconnectlembrete@gmail.com
-    password: kvmbbnxwmueewpki
+    username: ${FANCONNECT_EMAIL_USER}
+    password: ${FANCONNECT_EMAIL_PASS}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${OAUTH_CLIENT_ID}
+            client-secret: ${OAUTH_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
   h2:
     console:
       enabled: true
