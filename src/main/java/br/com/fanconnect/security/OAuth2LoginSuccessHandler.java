@@ -52,6 +52,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String tokenJwt = tokenService.gerarToken(usuario);
 
-        response.sendRedirect("http://localhost:8080/index.html?token=" + tokenJwt);
+        response.sendRedirect("http://localhost:4200/auth-callback?token=" + tokenJwt);
     }
 }
