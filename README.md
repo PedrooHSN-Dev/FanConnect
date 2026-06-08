@@ -2,6 +2,10 @@
 
 A FanConnect é uma plataforma focada na gestão acadêmica integrada, conectando o feed de notícias da instituição diretamente à agenda pessoal do aluno.
 
+## Repositórios
+
+- 🖥️ **Frontend:** [fanconnect-front](https://github.com/PedrooHSN-Dev/FanConnect-Front)
+
 ##  Tecnologias Utilizadas
 
 * **Java 21**
