@@ -49,4 +49,39 @@ public class AgendaController {
 
         return ResponseEntity.ok(todosOsEventos);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarEvento(@PathVariable Long id, @RequestBody ItemAgenda eventoAtualizado, @AuthenticationPrincipal Usuario usuarioLogado) {
+        return agendaRepository.findById(id).map(eventoExistente -> {
+            // Verifica se o usuário logado é o dono do evento
+            if (!eventoExistente.getDono().getId().equals(usuarioLogado.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Você não tem permissão para editar este evento.");
+            }
+
+            eventoExistente.setTitulo(eventoAtualizado.getTitulo());
+            eventoExistente.setDescricao(eventoAtualizado.getDescricao());
+            eventoExistente.setDataHora(eventoAtualizado.getDataHora());
+            eventoExistente.setLocalizacao(eventoAtualizado.getLocalizacao());
+            eventoExistente.setCategoria(eventoAtualizado.getCategoria());
+            eventoExistente.setVisibilidade(eventoAtualizado.getVisibilidade());
+            eventoExistente.setLembreteAtivo(eventoAtualizado.getLembreteAtivo());
+            eventoExistente.setMinutosAvisoLembrete(eventoAtualizado.getMinutosAvisoLembrete());
+
+            agendaRepository.save(eventoExistente);
+            return ResponseEntity.ok(eventoExistente);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletarEvento(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+        return agendaRepository.findById(id).map(eventoExistente -> {
+            // Verifica se o usuário logado é o dono do evento
+            if (!eventoExistente.getDono().getId().equals(usuarioLogado.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Você não tem permissão para deletar este evento.");
+            }
+
+            agendaRepository.delete(eventoExistente);
+            return ResponseEntity.noContent().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -115,6 +115,12 @@ public class UsuarioController {
         return ResponseEntity.ok(perfilAtualizado);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<PerfilResponse> buscarMeuPerfil(@AuthenticationPrincipal Usuario usuarioLogado) {
+        PerfilResponse perfil = usuarioService.buscarPerfilPorId(usuarioLogado.getId());
+        return ResponseEntity.ok(perfil);
+    }
+
     @PostMapping("/{idSeguido}/seguir")
     public ResponseEntity<String> seguirUsuario(
             @PathVariable Long idSeguido,

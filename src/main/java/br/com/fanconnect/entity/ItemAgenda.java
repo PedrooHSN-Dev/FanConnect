@@ -1,5 +1,6 @@
 package br.com.fanconnect.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -76,12 +77,16 @@ public class ItemAgenda {
     public Turma getTurmaAlvo() { return turmaAlvo; }
     public void setTurmaAlvo(Turma turmaAlvo) { this.turmaAlvo = turmaAlvo; }
 
+    @JsonProperty("lembreteAtivo")
     public Boolean getLembreteAtivo() { return lembreteAtivo; }
-    public void setLembreteAtivo(Boolean lembreteAtivo) { this.lembreteAtivo = lembreteAtivo; }
+    public void setLembreteAtivo(Boolean lembreteAtivo) {
+        this.lembreteAtivo = lembreteAtivo;
+    }
 
     public Integer getMinutosAvisoLembrete() { return minutosAvisoLembrete; }
     public void setMinutosAvisoLembrete(Integer minutosAvisoLembrete) { this.minutosAvisoLembrete = minutosAvisoLembrete; }
 
+    @JsonProperty("lembreteEnviado")
     public Boolean getLembreteEnviado() { return lembreteEnviado; }
     public void setLembreteEnviado(Boolean lembreteEnviado) { this.lembreteEnviado = lembreteEnviado; }
 }
