@@ -185,7 +185,20 @@ public class FeedController {
 
         ItemAgenda eventoSalvo = agendaRepository.save(eventoPrivado);
         return ResponseEntity.ok(eventoSalvo);
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> excluirPostagem(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
 
+        return postagemRepository.findById(id).map(postagem -> {
+            if (!postagem.getAutor().getId().equals(usuarioLogado.getId())) {
+                return ResponseEntity.status(403).body("Você não tem permissão para excluir esta postagem.");
+            }
+
+            postagemRepository.delete(postagem);
+            return ResponseEntity.noContent().build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 }
