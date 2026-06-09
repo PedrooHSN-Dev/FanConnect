@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Fundo escuro com bordas arredondadas -->
+  <rect width="128" height="128" rx="24" fill="#1e1e24"/>
+  
+  <!-- Tela principal (fundo) -->
+  <rect x="20" y="24" width="76" height="56" rx="8" fill="none" stroke="#ffffff" stroke-width="8"/>
+  
+  <!-- Tela menor saindo da tela principal (Picture-in-Picture) -->
+  <rect x="56" y="60" width="52" height="40" rx="8" fill="#f58220"/>
+  
+  <!-- Símbolo de Play na tela menor -->
+  <polygon points="74,70 74,90 90,80" fill="#ffffff"/>
+</svg>

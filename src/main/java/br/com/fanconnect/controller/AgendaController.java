@@ -4,6 +4,8 @@ import br.com.fanconnect.entity.ItemAgenda;
 import br.com.fanconnect.entity.Usuario;
 import br.com.fanconnect.entity.VisibilidadeEvento;
 import br.com.fanconnect.repository.ItemAgendaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

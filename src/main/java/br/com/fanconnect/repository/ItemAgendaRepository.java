@@ -31,11 +31,14 @@ public interface ItemAgendaRepository extends JpaRepository<ItemAgenda, Long> {
     // Método de segurança caso o aluno ainda não tenha turma
     List<ItemAgenda> findByVisibilidadeOrderByDataHoraAsc(VisibilidadeEvento visibilidade);
 
+    boolean existsByTituloAndDataHoraAndDono(String titulo, java.time.LocalDateTime dataHora, br.com.fanconnect.entity.Usuario dono);
+
     @Query("""
         SELECT e FROM ItemAgenda e 
         WHERE e.visibilidade = 'GLOBAL' 
         OR (e.visibilidade = 'TURMA' AND e.turmaAlvo.id = :turmaId) 
         OR (e.visibilidade = 'PRIVADO' AND e.dono.id = :usuarioId)
+        OR (e.visibilidade = 'PUBLICO' AND e.dono.id = :usuarioId)
     """)
     List<ItemAgenda> buscarAgendaCompletaDoAluno(
             @Param("turmaId") Long turmaId,

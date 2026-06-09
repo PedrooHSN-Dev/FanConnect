@@ -41,9 +41,29 @@ public class FeedController {
 
 
     @GetMapping
-    public ResponseEntity<Page<Postagem>> listarFeed(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<Page<Postagem>> listarFeed(
+            @PageableDefault(size = 10, page = 0) Pageable pageable,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
 
         Page<Postagem> postagens = postagemRepository.findAllByOrderByScoreRelevanciaDescDataCriacaoDesc(pageable);
+
+        if (usuarioLogado != null) {
+            postagens.forEach(post -> {
+                boolean curtiu = post.getUsuariosQueCurtiram().stream()
+                        .anyMatch(u -> u.getId().equals(usuarioLogado.getId()));
+                post.setCurtidoPorMim(curtiu);
+
+                if (post.getEventoProposto() != null) {
+                    boolean jaSalvo = agendaRepository.existsByTituloAndDataHoraAndDono(
+                            post.getEventoProposto().getTitulo(),
+                            post.getEventoProposto().getDataHora(),
+                            usuarioLogado
+                    );
+                    post.setEventoSalvoPorMim(jaSalvo);
+                }
+            });
+        }
 
         return ResponseEntity.ok(postagens);
     }
@@ -56,7 +76,17 @@ public class FeedController {
         novaPostagem.setAutor(usuarioLogado);
 
         if (novaPostagem.getEventoProposto() != null) {
-            novaPostagem.getEventoProposto().setDono(usuarioLogado);
+            ItemAgenda evento = novaPostagem.getEventoProposto();
+            evento.setDono(usuarioLogado);
+
+            evento.setLembreteAtivo(true);
+            evento.setMinutosAvisoLembrete(60);
+
+            if (VisibilidadeEvento.GLOBAL.equals(evento.getVisibilidade()) &&
+                    !br.com.fanconnect.entity.TipoUsuario.ADMIN.equals(usuarioLogado.getTipoPerfil())) {
+
+                evento.setVisibilidade(VisibilidadeEvento.PUBLICO);
+            }
         }
 
         Postagem postagemSalva = postagemRepository.save(novaPostagem);
@@ -133,9 +163,13 @@ public class FeedController {
             return ResponseEntity.badRequest().build();
         }
 
+
         Usuario aluno = usuarioLogado;
 
         ItemAgenda eventoOriginal = postagem.getEventoProposto();
+        if (agendaRepository.existsByTituloAndDataHoraAndDono(eventoOriginal.getTitulo(), eventoOriginal.getDataHora(), usuarioLogado)) {
+            return ResponseEntity.badRequest().build();
+        }
         ItemAgenda eventoPrivado = new ItemAgenda();
         eventoPrivado.setTitulo(eventoOriginal.getTitulo());
         eventoPrivado.setDescricao("Salvo do Feed: " + postagem.getConteudo());
@@ -151,5 +185,7 @@ public class FeedController {
 
         ItemAgenda eventoSalvo = agendaRepository.save(eventoPrivado);
         return ResponseEntity.ok(eventoSalvo);
+
+
     }
 }

@@ -43,6 +43,7 @@ public class Postagem {
     // Relação: Um post pode divulgar UM Item na Agenda
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "item_agenda_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ItemAgenda eventoProposto;
 
     // Contadores com valor padrão
@@ -70,6 +71,12 @@ public class Postagem {
         this.scoreRelevancia = new BigDecimal(calculoFinal).setScale(4, RoundingMode.HALF_UP);
     }
 
+    @Transient
+    private boolean curtidoPorMim = false;
+
+    @Transient
+    private boolean eventoSalvoPorMim = false;
+
     // Getters e Setters Básicos
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -94,6 +101,14 @@ public class Postagem {
     public void setEventoProposto(ItemAgenda eventoProposto) { this.eventoProposto = eventoProposto; }
 
     public int getQuantidadeCurtidas() { return quantidadeCurtidas; }
+
+    public boolean isCurtidoPorMim() { return curtidoPorMim; }
+    public void setCurtidoPorMim(boolean curtidoPorMim) { this.curtidoPorMim = curtidoPorMim; }
+
+    public Set<Usuario> getUsuariosQueCurtiram() { return usuariosQueCurtiram; }
+
+    public boolean isEventoSalvoPorMim() { return eventoSalvoPorMim; }
+    public void setEventoSalvoPorMim(boolean eventoSalvoPorMim) { this.eventoSalvoPorMim = eventoSalvoPorMim; }
 
     public void alternarCurtida(Usuario usuarioLogado) {
         // Verifica se o usuário já está na lista
