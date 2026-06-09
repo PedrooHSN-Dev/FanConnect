@@ -42,10 +42,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             usuario = new Usuario();
             usuario.setNome(nome);
             usuario.setEmail(email);
-            usuario.setSenha(passwordEncoder.encode(UUID.randomUUID().toString()));
-            usuario.setMatricula("GOO-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            usuario.setSenha("");
+            usuario.setMatricula("");
             usuario.setTipoPerfil(TipoUsuario.ALUNO);
-            usuario.setAtivo(true); // Se veio do Google, o e-mail já está verificado por eles!
+            usuario.setAtivo(true);
 
             usuario = usuarioRepository.save(usuario);
         }

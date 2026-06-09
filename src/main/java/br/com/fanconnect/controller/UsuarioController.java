@@ -1,9 +1,6 @@
 package br.com.fanconnect.controller;
 
-import br.com.fanconnect.dto.DadosAtivacaoConta;
-import br.com.fanconnect.dto.DadosCadastroUsuario;
-import br.com.fanconnect.dto.PerfilRequest;
-import br.com.fanconnect.dto.PerfilResponse;
+import br.com.fanconnect.dto.*;
 import br.com.fanconnect.entity.CodigoRecuperacao;
 import br.com.fanconnect.entity.TipoUsuario;
 import br.com.fanconnect.entity.Usuario;
@@ -31,6 +28,9 @@ public class UsuarioController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private br.com.fanconnect.repository.UsuarioRepository usuarioRepository;
 
     @Autowired
     private CodigoRecuperacaoRepository codigoRepository;
@@ -137,5 +137,57 @@ public class UsuarioController {
 
         String mensagem = usuarioService.deixarDeSeguir(usuarioLogado, idSeguido);
         return ResponseEntity.ok(mensagem);
+    }
+
+    @PutMapping("/senha")
+    public ResponseEntity<?> alterarSenha(
+            @RequestBody @Valid DadosAlteracaoSenha dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        boolean usuarioJaPossuiSenha = usuarioLogado.getSenha() != null && !usuarioLogado.getSenha().isEmpty();
+
+        if (usuarioJaPossuiSenha) {
+            if (dados.senhaAtual() == null || dados.senhaAtual().isBlank()) {
+                return ResponseEntity.badRequest().body("A senha atual é obrigatória.");
+            }
+            if (!passwordEncoder.matches(dados.senhaAtual(), usuarioLogado.getSenha())) {
+                return ResponseEntity.badRequest().body("A senha atual informada está incorreta.");
+            }
+        }
+
+        usuarioLogado.setSenha(passwordEncoder.encode(dados.senhaNova()));
+        repository.save(usuarioLogado);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/conta")
+    public ResponseEntity<?> excluirContaPermanentemente(
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        usuarioRepository.delete(usuarioLogado);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/meu-perfil")
+    public ResponseEntity<?> obterMeuPerfil(@AuthenticationPrincipal Usuario usuarioLogado) {
+        boolean possuiSenha = usuarioLogado.getSenha() != null && !usuarioLogado.getSenha().isEmpty();
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "matricula", usuarioLogado.getMatricula() != null ? usuarioLogado.getMatricula() : "",
+                "possuiSenha", possuiSenha
+        ));
+    }
+
+    @PutMapping("/matricula")
+    public ResponseEntity<?> vincularMatricula(
+            @RequestBody @Valid DadosMatricula dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        usuarioLogado.setMatricula(dados.matricula());
+        repository.save(usuarioLogado);
+
+        return ResponseEntity.ok().build();
     }
 }

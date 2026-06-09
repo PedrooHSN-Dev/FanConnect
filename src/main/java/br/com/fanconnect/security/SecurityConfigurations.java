@@ -42,12 +42,18 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/usuarios/registrar", "/api/usuarios/login", "/api/usuarios/ativar-conta").permitAll();
                     req.requestMatchers(HttpMethod.POST, "/api/usuarios/esqueci-senha", "/api/usuarios/redefinir-senha").permitAll();
+
+                    req.requestMatchers("/ws/**").permitAll();
+                    req.requestMatchers("/app/**").permitAll();
+
                     req.requestMatchers("/error").permitAll();
                     req.requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js").permitAll();
                     req.requestMatchers("/login/**", "/oauth2/**").permitAll();
+
                     req.requestMatchers("/uploads/**").permitAll();
                     req.requestMatchers(HttpMethod.GET, "/uploads/**").permitAll();
                     req.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
+
                     req.anyRequest().authenticated();
                 })
                 .oauth2Login(oauth2 -> oauth2
