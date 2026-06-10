@@ -42,8 +42,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             usuario = new Usuario();
             usuario.setNome(nome);
             usuario.setEmail(email);
-            usuario.setSenha("");
-            usuario.setMatricula("");
+
+            usuario.setSenha(UUID.randomUUID().toString());
+            usuario.setMatricula("GOOGLE-" + UUID.randomUUID().toString().substring(0, 8));
+
             usuario.setTipoPerfil(TipoUsuario.ALUNO);
             usuario.setAtivo(true);
 
@@ -52,6 +54,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String tokenJwt = tokenService.gerarToken(usuario);
 
-        response.sendRedirect("http://localhost:4200/auth-callback?token=" + tokenJwt);
+        response.sendRedirect("/auth-callback?token=" + tokenJwt);
     }
 }
