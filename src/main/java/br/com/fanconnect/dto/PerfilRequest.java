@@ -3,10 +3,14 @@ package br.com.fanconnect.dto;
 import br.com.fanconnect.entity.EstadoCivil;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDate;
 
 public record PerfilRequest(
+        @Size(max = 150, message = "O nome não pode exceder 150 caracteres")
+        String nome,
+
+        String fotoPerfil,
+
         @Size(max = 500, message = "A biografia pode ter no máximo 500 caracteres")
         String biografia,
 

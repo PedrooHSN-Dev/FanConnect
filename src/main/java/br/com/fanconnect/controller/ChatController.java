@@ -18,6 +18,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -82,10 +83,17 @@ public class ChatController {
 
         Conversa novaConversa = new Conversa();
         novaConversa.setTipo(TipoConversa.INDIVIDUAL);
+
+        novaConversa.setAdmin(usuarioLogado);
+
         novaConversa.getParticipantes().add(usuarioLogado);
         novaConversa.getParticipantes().add(destino);
 
-        return ResponseEntity.ok(conversaRepository.save(novaConversa));
+        Conversa conversaSalva = conversaRepository.save(novaConversa);
+
+        messagingTemplate.convertAndSend("/topic/usuarios/" + usuarioLogado.getId() + "/notificacoes", "ATUALIZAR_LISTA");
+
+        return ResponseEntity.ok(conversaSalva);
     }
 
     // ==========================================
@@ -106,7 +114,13 @@ public class ChatController {
         List<Usuario> convidados = usuarioRepository.findAllById(dados.participantesIds());
         novoGrupo.getParticipantes().addAll(convidados);
 
-        return ResponseEntity.ok(conversaRepository.save(novoGrupo));
+        Conversa grupoSalvo = conversaRepository.save(novoGrupo);
+
+        grupoSalvo.getParticipantes().forEach(participante -> {
+            messagingTemplate.convertAndSend("/topic/usuarios/" + participante.getId() + "/notificacoes", "ATUALIZAR_LISTA");
+        });
+
+        return ResponseEntity.ok(grupoSalvo);
     }
 
     @PutMapping("/grupo/{id}/nome")
@@ -140,6 +154,7 @@ public class ChatController {
     // ==========================================
     // ENVIAR MENSAGEM (WebSocket/STOMP)
     // ==========================================
+    @Transactional
     @MessageMapping("/chat/enviar")
     public void enviarMensagem(DadosEnviarMensagem dados) {
         Conversa conversa = conversaRepository.findById(dados.conversaId())
@@ -162,8 +177,13 @@ public class ChatController {
         Map<String, Object> remetenteMap = new HashMap<>();
         remetenteMap.put("id", remetente.getId());
         remetenteMap.put("nome", remetente.getNome());
+        remetenteMap.put("fotoPerfil", remetente.getFotoPerfil());
         mensagemLimpa.put("remetente", remetenteMap);
 
         messagingTemplate.convertAndSend("/topic/conversas/" + conversa.getId(), mensagemLimpa);
+
+        conversa.getParticipantes().forEach(participante -> {
+            messagingTemplate.convertAndSend("/topic/usuarios/" + participante.getId() + "/notificacoes", "ATUALIZAR_LISTA");
+        });
     }
 }

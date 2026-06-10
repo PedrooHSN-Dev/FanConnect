@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public record PerfilResponse(
         Long id,
         String nome,
+        String fotoPerfil,
         String biografia,
         String localizacao,
         String telefone,
@@ -21,6 +22,7 @@ public record PerfilResponse(
         this(
                 usuario.getId(),
                 usuario.getNome(),
+                usuario.getFotoPerfil(),
                 usuario.getBiografia(),
                 usuario.getLocalizacao(),
                 usuario.getTelefone(),

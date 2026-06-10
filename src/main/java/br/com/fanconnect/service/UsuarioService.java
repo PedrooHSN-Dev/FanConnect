@@ -18,6 +18,8 @@ public class UsuarioService {
     public PerfilResponse atualizarPerfil(Usuario usuarioLogado, PerfilRequest request) {
         Usuario usuario = repository.findById(usuarioLogado.getId()).orElseThrow();
 
+        if (request.nome() != null && !request.nome().trim().isEmpty()) usuario.setNome(request.nome());
+        if (request.fotoPerfil() != null) usuario.setFotoPerfil(request.fotoPerfil());
         if (request.biografia() != null) usuario.setBiografia(request.biografia());
         if (request.telefone() != null) usuario.setTelefone(request.telefone());
         if (request.localizacao() != null) usuario.setLocalizacao(request.localizacao());

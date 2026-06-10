@@ -1,7 +1,6 @@
 package br.com.fanconnect.repository;
 
 import br.com.fanconnect.entity.Conversa;
-import br.com.fanconnect.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +12,17 @@ import java.util.Optional;
 @Repository
 public interface ConversaRepository extends JpaRepository<Conversa, Long> {
 
-    @Query("SELECT c FROM Conversa c JOIN c.participantes p WHERE p.id = :usuarioId ORDER BY c.dataCriacao DESC")
+    @Query("""
+        SELECT c FROM Conversa c 
+        JOIN c.participantes p 
+        WHERE p.id = :usuarioId 
+        AND (
+            c.tipo = 'GRUPO' 
+            OR c.admin.id = :usuarioId 
+            OR (SELECT COUNT(m) FROM Mensagem m WHERE m.conversa = c) > 0
+        )
+        ORDER BY COALESCE((SELECT MAX(m.dataEnvio) FROM Mensagem m WHERE m.conversa = c), c.dataCriacao) DESC
+    """)
     List<Conversa> buscarConversasDoUsuario(@Param("usuarioId") Long usuarioId);
 
     @Query("""
